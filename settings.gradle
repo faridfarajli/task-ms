@@ -1,0 +1,4 @@
+rootProject.name = 'task'
+include 'ms1'
+include 'ms2'
+

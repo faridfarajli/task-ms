@@ -1,0 +1,61 @@
+version: '3'
+services:
+  ms23:
+    image: mysql:8.0.23
+    restart: always
+    volumes:
+      - ms23-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "ms23@ingress"
+    ports:
+      - 3306:3306
+  #    networks:
+  #      - ms23
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8580:8080
+  #    networks:
+  #      - ms23
+  ms1:
+    image: feridferecli/ms1
+    restart: always
+    ports:
+      - 9091:9091
+    environment:
+      - DB_CONNECTION_IP=ms23
+      - DB_CONNECTION_USERNAME=root
+      - DB_CONNECTION_PASSWORD=ms23@ingress
+    depends_on:
+      - ms23
+  ms2:
+    image: feridferecli/ms2
+    restart: always
+    ports:
+      - 9092:9092
+    environment:
+      - DB_CONNECTION_IP=ms23
+      - DB_CONNECTION_USERNAME=root
+      - DB_CONNECTION_PASSWORD=ms23@ingress
+    depends_on:
+      - ms23
+  reverse_proxy:
+    image: nginx:latest
+    hostname: proxy
+    container_name: reverse_proxy
+    depends_on:
+      - ms1
+      - ms2
+    ports:
+      - "8000:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+
+volumes:
+  ms23-data:
+
+#networks:
+#  ms23:
